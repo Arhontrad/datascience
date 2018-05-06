@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May  7 01:04:53 2018
+
+@author: arhontra
+"""
+
+import numpy as np
+import pandas as pd
+from spyre import server
+import code1
+
+
+class App(server.App):
+
+	title = "Simple App"
+
+	inputs = [
+    		{
+    			"type" : "dropdown",
+	    		"label" : "Province",
+	    		"options" : [{"label": i,"value": i} for i in code1.city_list()],
+	    		"key" : "province1"},
+	    	{
+    			"type" : "dropdown",
+	    		"label" : "Province",
+	    		"options" : [{"label": i,"value": i} for i in code1.city_list()],
+	    		"key" : "province2"},
+    		{
+	    		"type" : "dropdown",
+	    		"label" : "Indexes",
+	    		"options" : [
+	   				{"label" : "VHI", "value" : "VHI"},
+	    			{"label" : "TCI", "value" : "TCI"},
+	    			{"label":"VCI","value" : "VCI"}],
+    			"key" : "index"},
+    		{
+				"type":'slider',
+				"label": 'Year',
+				"key": 'year',
+				"value" : 2017,
+				"min" : 1981,
+				"max" : 2017
+			},
+    		{
+				"type":'slider',
+				"label": 'Min',
+				"key": 'freq1',
+				"value" : 0,
+				"min" : 0,
+				"max" : 53
+			},
+			{
+				"type":'slider',
+				"label": 'Max',
+				"key": 'freq2',
+				"value" : 53,
+				"min" : 0,
+				"max" : 53
+			}]
+
+	tabs = ["Table_1", "Plot_1","Table_2", "Plot_2"]
+
+	controls = [
+   			{
+				"type" : "button",
+				"label" : "Update",
+				"id" : "update_data"}]
+	outputs = [
+			{
+				"type" : "plot",
+				"id" : "plot1",
+				"control_id" : "update_data",
+				"tab" : "Plot_1"},
+			{
+				"type" : "plot",
+				"id" : "plot2",
+				"control_id" : "update_data",
+				"tab" : "Plot_2"},
+    		{
+    			"type" : "table",
+    			"id" : "table_id_1",
+    			"control_id" : "update_data",
+    			"tab" : "Table_1"},
+    		{
+    			"type" : "table",
+    			"id" : "table_id_2",
+    			"control_id" : "update_data",
+    			"tab" : "Table_2"}]
+
+
+	def table_id_1(self, params):
+		prov = params['province1']
+		ind = params['index']
+		min = params['freq1']
+		max = params['freq2']
+		year = params['year']
+		if min > max:
+			return None
+		df = code1.data_frame_filter(province = prov,year=year, index = ind, min = min, max= max)
+		return df
+
+	def plot1(self, params):
+		df = self.table_id_1(params)
+		ind = params['index']
+		obj = df[ind]
+		plt_obj = obj.plot()
+		return plt_obj
+
+	def table_id_2(self, params):
+		prov = params['province2']
+		ind = params['index']
+		min = params['freq1']
+		max = params['freq2']
+		year = params['year']
+		if min > max:
+			return None
+		df = code1.data_frame_filter(province = prov,year = year, index = ind, min = min, max= max)
+		return df
+
+	def plot2(self, params):
+		df = self.table_id_2(params)
+		ind = params['index']
+		obj = df[ind]
+		plt_obj = obj.plot()
+		return plt_obj
+
+
+
+
+app = App()
+app.launch()
